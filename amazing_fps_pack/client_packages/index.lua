@@ -77,3 +77,7 @@ Citizen.CreateThread(function()
         end
     end
 end)
+-- В главный цикл:
+if isPedInAnyVehicle(PlayerPedId(), false) then
+    drawSpeedometer()
+end
