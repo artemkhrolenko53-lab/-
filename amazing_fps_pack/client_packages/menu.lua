@@ -1,5 +1,5 @@
 -- ============================================
--- AMAZING RP FPS PACK - МЕНЮ F2
+-- AMAZING RP FPS PACK - МЕНЮ F2 (ПОЛНЫЙ КОД)
 -- ============================================
 
 local menuOpen = false
@@ -7,18 +7,18 @@ local currentTab = 1
 local tabs = {"⚡ FPS BOOST", "🎯 AIM", "👁 VISUALS", "🔊 SOUNDS"}
 
 -- Цвета меню
-local accentR, accentG, accentB = 0, 198, 255    -- #00c6ff
-local accent2R, accent2G, accent2B = 123, 47, 247 -- #7b2ff7
+local accentR, accentG, accentB = 0, 198, 255
+local accent2R, accent2G, accent2B = 123, 47, 247
 local bgR, bgG, bgB, bgA = 15, 15, 20, 230
 local tabBgR, tabBgG, tabBgB, tabBgA = 25, 25, 35, 240
 
 -- Размеры меню
-local menuWidth = 650
-local menuHeight = 450
+local menuWidth = 700
+local menuHeight = 500
 local menuX = 0
 local menuY = 0
 local tabWidth = 150
-local contentWidth = 480
+local contentWidth = 530
 
 -- ============================================
 -- ОТКРЫТЬ/ЗАКРЫТЬ МЕНЮ
@@ -26,8 +26,9 @@ local contentWidth = 480
 function toggleMenu()
     menuOpen = not menuOpen
     if menuOpen then
-        menuX = (GetScreenResolution() - menuWidth) / 2
-        menuY = (GetScreenResolution() - menuHeight) / 2
+        local screenW, screenH = GetScreenResolution()
+        menuX = (screenW - menuWidth) / 2
+        menuY = (screenH - menuHeight) / 2
     end
 end
 
@@ -41,7 +42,7 @@ end
 function drawMenu(settings)
     if not menuOpen then return end
     
-    screenW, screenH = GetScreenResolution()
+    local screenW, screenH = GetScreenResolution()
     menuX = (screenW - menuWidth) / 2
     menuY = (screenH - menuHeight) / 2
     
@@ -60,7 +61,7 @@ function drawMenu(settings)
     SetTextScale(0.3, 0.3)
     SetTextColour(150, 150, 150, 200)
     SetTextEntry("STRING")
-    AddTextComponentString("v1.0 by Niko")
+    AddTextComponentString("v2.0")
     DrawText(menuX + 15, menuY + 35)
     
     -- Линия-разделитель
@@ -72,14 +73,11 @@ function drawMenu(settings)
     for i, tab in ipairs(tabs) do
         local tabY = menuY + 80 + (i - 1) * 45
         
-        -- Фон вкладки
         if i == currentTab then
             DrawRect(menuX + tabWidth/2 + 5, tabY + 15, tabWidth - 10, 40, accentR, accentG, accentB, 80)
-            -- Акцентная полоска слева
             DrawRect(menuX + 3, tabY + 15, 3, 40, accentR, accentG, accentB, 255)
         end
         
-        -- Текст вкладки
         SetTextFont(0)
         SetTextScale(0.4, 0.4)
         if i == currentTab then
@@ -93,7 +91,7 @@ function drawMenu(settings)
     end
     
     -- Разделитель между вкладками и контентом
-    DrawRect(menuX + tabWidth + 5, menuY + menuHeight/2, 1, menuHeight - 80, accentR, accentG, accentB, 60)
+    DrawRect(menuX + tabWidth + 5, menuY + menuHeight/2 - 20, 1, menuHeight - 100, accentR, accentG, accentB, 60)
     
     -- ============================================
     -- КОНТЕНТ СПРАВА
@@ -112,7 +110,7 @@ function drawMenu(settings)
     end
     
     -- ============================================
-    -- НИЖНЯЯ ПАНЕЛЬ (КНОПКИ)
+    -- НИЖНЯЯ ПАНЕЛЬ
     -- ============================================
     local btnY = menuY + menuHeight - 40
     
@@ -124,7 +122,6 @@ function drawMenu(settings)
     -- Кнопка Сброс
     if drawButton("🔄 Сброс", menuX + 160, btnY, 100, 25, 200, 100, 0, 200) then
         resetSettings()
-        applyAllFpsSettings(getAllSettings())
     end
     
     -- Кнопка Очистить память
@@ -132,7 +129,7 @@ function drawMenu(settings)
         forceClearMemory()
     end
     
-    -- FPS в правом нижнем углу меню
+    -- FPS в правом нижнем углу
     local fps = math.floor(1.0 / GetFrameTime())
     SetTextFont(0)
     SetTextScale(0.35, 0.35)
@@ -140,6 +137,13 @@ function drawMenu(settings)
     SetTextEntry("STRING")
     AddTextComponentString("FPS: " .. fps)
     DrawText(menuX + menuWidth - 80, btnY + 5)
+    
+    -- Подсказка
+    SetTextScale(0.3, 0.3)
+    SetTextColour(150, 150, 150, 150)
+    SetTextEntry("STRING")
+    AddTextComponentString("F2 — закрыть | Стрелки — табы")
+    DrawText(menuX + menuWidth - 200, btnY + 5)
 end
 
 -- ============================================
@@ -166,7 +170,6 @@ function drawPerformanceTab(settings, x, y)
         end)
     end
     
-    -- LOD слайдер
     local lodY = y + #items * 35 + 10
     drawSlider("Дальность LOD", settings.lod_distance, 0, 100, x, lodY, function(val)
         settings.lod_distance = val
@@ -174,12 +177,20 @@ function drawPerformanceTab(settings, x, y)
         setLodDistance(val)
     end)
     
-    -- Автоочистка
     local autoY = lodY + 40
     drawToggle("Автоочистка памяти", settings.auto_clear_memory, x, autoY, function(val)
         settings.auto_clear_memory = val
         setSetting("auto_clear_memory", val)
         if val then startAutoClean(getAllSettings()) else stopAutoClean() end
+    end)
+    
+    local intervalY = autoY + 35
+    drawSlider("Интервал очистки (мин)", settings.auto_clear_interval, 1, 30, x, intervalY, function(val)
+        settings.auto_clear_interval = val
+        setSetting("auto_clear_interval", val)
+        if settings.auto_clear_memory then
+            startAutoClean(getAllSettings())
+        end
     end)
 end
 
@@ -187,44 +198,155 @@ end
 -- ВКЛАДКА: AIM
 -- ============================================
 function drawAimTab(settings, x, y)
-    drawToggle("Умный прицел", settings.aim_enabled, x, y, function(val)
+    local line = 0
+    local lineH = 33
+    
+    -- Включить умный прицел
+    drawToggle("Умный прицел", settings.aim_enabled, x, y + line * lineH, function(val)
         settings.aim_enabled = val
         setSetting("aim_enabled", val)
     end)
+    line = line + 1
     
-    drawToggle("Доводка до цели", settings.aim_lock, x, y + 35, function(val)
+    -- Доводка до цели
+    drawToggle("Доводка до цели", settings.aim_lock, x, y + line * lineH, function(val)
         settings.aim_lock = val
         setSetting("aim_lock", val)
     end)
+    line = line + 1
     
-    drawSlider("Сила доводки", settings.aim_strength, 0, 100, x, y + 70, function(val)
+    -- Клавиша активации
+    local keys = {"Всегда", "ЛКМ", "ПКМ", "LAlt", "E", "Shift"}
+    local keyVals = {0, 1, 2, 18, 38, 21}
+    local currentKeyIndex = 1
+    for i, kv in ipairs(keyVals) do
+        if kv == (settings.aim_activation_key or 0) then
+            currentKeyIndex = i
+            break
+        end
+    end
+    drawCombo("Клавиша активации", keys, currentKeyIndex, x, y + line * lineH, function(index)
+        settings.aim_activation_key = keyVals[index]
+        setSetting("aim_activation_key", keyVals[index])
+    end)
+    line = line + 1
+    
+    -- Точка прицеливания
+    local boneNames = {"Голова", "Шея", "Грудь", "Таз", "Ноги"}
+    local boneVals = {"head", "neck", "chest", "pelvis", "legs"}
+    local boneIndex = getBoneIndex(settings.aim_bone or "head")
+    drawCombo("Точка прицеливания", boneNames, boneIndex, x, y + line * lineH, function(index)
+        settings.aim_bone = boneVals[index]
+        setSetting("aim_bone", boneVals[index])
+    end)
+    line = line + 1
+    
+    -- Приоритет целей
+    local prioNames = {"Дистанция", "Здоровье", "Угол"}
+    local prioVals = {"distance", "health", "angle"}
+    local prioIndex = getPriorityIndex(settings.aim_priority or "distance")
+    drawCombo("Приоритет целей", prioNames, prioIndex, x, y + line * lineH, function(index)
+        settings.aim_priority = prioVals[index]
+        setSetting("aim_priority", prioVals[index])
+    end)
+    line = line + 1
+    
+    -- Сила доводки
+    drawSlider("Сила доводки", settings.aim_strength or 70, 0, 100, x, y + line * lineH, function(val)
         settings.aim_strength = val
         setSetting("aim_strength", val)
     end)
+    line = line + 1
     
-    drawSlider("Плавность", settings.aim_smooth, 0, 100, x, y + 105, function(val)
-        settings.aim_smooth = val
-        setSetting("aim_smooth", val)
+    -- Плавность X
+    drawSlider("Плавность X", settings.aim_smooth_x or 60, 0, 100, x, y + line * lineH, function(val)
+        settings.aim_smooth_x = val
+        setSetting("aim_smooth_x", val)
     end)
+    line = line + 1
     
-    drawSlider("FOV", settings.aim_fov, 10, 360, x, y + 140, function(val)
+    -- Плавность Y
+    drawSlider("Плавность Y", settings.aim_smooth_y or 60, 0, 100, x, y + line * lineH, function(val)
+        settings.aim_smooth_y = val
+        setSetting("aim_smooth_y", val)
+    end)
+    line = line + 1
+    
+    -- FOV
+    drawSlider("FOV прицеливания", settings.aim_fov or 90, 10, 360, x, y + line * lineH, function(val)
         settings.aim_fov = val
         setSetting("aim_fov", val)
     end)
+    line = line + 1
     
-    drawToggle("No Recoil", settings.no_recoil, x, y + 175, function(val)
+    -- Deadzone
+    drawSlider("Мёртвая зона", settings.aim_deadzone or 15, 0, 100, x, y + line * lineH, function(val)
+        settings.aim_deadzone = val
+        setSetting("aim_deadzone", val)
+    end)
+    line = line + 1
+    
+    -- Макс дистанция
+    drawSlider("Макс дистанция", settings.aim_max_distance or 200, 50, 500, x, y + line * lineH, function(val)
+        settings.aim_max_distance = val
+        setSetting("aim_max_distance", val)
+    end)
+    line = line + 1
+    
+    -- Игнор мёртвых
+    drawToggle("Игнор мёртвых", settings.aim_ignore_dead, x, y + line * lineH, function(val)
+        settings.aim_ignore_dead = val
+        setSetting("aim_ignore_dead", val)
+    end)
+    line = line + 1
+    
+    -- Игнор в транспорте
+    drawToggle("Игнор в транспорте", settings.aim_ignore_vehicles, x, y + line * lineH, function(val)
+        settings.aim_ignore_vehicles = val
+        setSetting("aim_ignore_vehicles", val)
+    end)
+    line = line + 1
+    
+    -- Проверка видимости
+    drawToggle("Проверка видимости", settings.aim_visible_check, x, y + line * lineH, function(val)
+        settings.aim_visible_check = val
+        setSetting("aim_visible_check", val)
+    end)
+    line = line + 1
+    
+    -- Динамический размер прицела
+    drawToggle("Динам. размер прицела", settings.aim_dynamic_size, x, y + line * lineH, function(val)
+        settings.aim_dynamic_size = val
+        setSetting("aim_dynamic_size", val)
+    end)
+    line = line + 1
+    
+    -- No Recoil
+    drawToggle("No Recoil", settings.no_recoil, x, y + line * lineH, function(val)
         settings.no_recoil = val
         setSetting("no_recoil", val)
     end)
+    line = line + 1
     
-    drawToggle("No Spread", settings.no_spread, x, y + 210, function(val)
+    -- No Spread
+    drawToggle("No Spread", settings.no_spread, x, y + line * lineH, function(val)
         settings.no_spread = val
         setSetting("no_spread", val)
     end)
+    line = line + 1
     
-    drawSlider("Разброс %", settings.spread_value, 0, 100, x, y + 245, function(val)
+    -- Разброс
+    drawSlider("Разброс %", settings.spread_value or 0, 0, 100, x, y + line * lineH, function(val)
         settings.spread_value = val
         setSetting("spread_value", val)
+    end)
+    line = line + 1
+    
+    -- Скорострельность
+    local fireRate = math.floor((settings.fire_rate_multiplier or 1.0) * 100)
+    drawSlider("Скорострельность %", fireRate, 50, 200, x, y + line * lineH, function(val)
+        settings.fire_rate_multiplier = val / 100
+        setSetting("fire_rate_multiplier", val / 100)
     end)
 end
 
@@ -232,32 +354,65 @@ end
 -- ВКЛАДКА: VISUALS
 -- ============================================
 function drawVisualsTab(settings, x, y)
-    drawToggle("Тёмные дороги", settings.black_roads, x, y, function(val)
+    local line = 0
+    local lineH = 35
+    
+    drawToggle("Тёмные дороги", settings.black_roads, x, y + line * lineH, function(val)
         settings.black_roads = val
         setSetting("black_roads", val)
         if val then enableBlackRoads(settings.road_darkness) else disableBlackRoads() end
     end)
+    line = line + 1
     
-    drawSlider("Темнота дорог", settings.road_darkness, 0, 100, x, y + 35, function(val)
+    drawSlider("Темнота дорог", settings.road_darkness or 80, 0, 100, x, y + line * lineH, function(val)
         settings.road_darkness = val
         setSetting("road_darkness", val)
         if settings.black_roads then enableBlackRoads(val) end
     end)
+    line = line + 1
     
-    drawToggle("Кастомный прицел", settings.custom_crosshair, x, y + 70, function(val)
+    drawToggle("Кастомный прицел", settings.custom_crosshair, x, y + line * lineH, function(val)
         settings.custom_crosshair = val
         setSetting("custom_crosshair", val)
     end)
+    line = line + 1
     
-    drawSlider("Стиль прицела", settings.crosshair_style, 1, 5, x, y + 105, function(val)
-        settings.crosshair_style = val
-        setSetting("crosshair_style", val)
+    local styles = {"Точка", "Крест", "Круг", "Т-образный", "Шеврон"}
+    drawCombo("Стиль прицела", styles, settings.crosshair_style or 1, x, y + line * lineH, function(index)
+        settings.crosshair_style = index
+        setSetting("crosshair_style", index)
     end)
+    line = line + 1
     
-    drawToggle("Эффекты крови", settings.blood_effects, x, y + 140, function(val)
+    drawSlider("Размер прицела", settings.crosshair_size or 15, 5, 40, x, y + line * lineH, function(val)
+        settings.crosshair_size = val
+        setSetting("crosshair_size", val)
+    end)
+    line = line + 1
+    
+    drawToggle("Эффекты крови", settings.blood_effects, x, y + line * lineH, function(val)
         settings.blood_effects = val
         setSetting("blood_effects", val)
         if val then enableBloodEffects(settings.blood_size) else disableBloodEffects() end
+    end)
+    line = line + 1
+    
+    drawSlider("Размер крови", settings.blood_size or 50, 10, 100, x, y + line * lineH, function(val)
+        settings.blood_size = val
+        setSetting("blood_size", val)
+    end)
+    line = line + 1
+    
+    drawToggle("Вспышки выстрелов", settings.muzzle_flash, x, y + line * lineH, function(val)
+        settings.muzzle_flash = val
+        setSetting("muzzle_flash", val)
+    end)
+    line = line + 1
+    
+    local flashTypes = {"Лёгкая", "Стандарт", "Яркая", "Очень яркая"}
+    drawCombo("Тип вспышек", flashTypes, settings.muzzle_flash_type or 1, x, y + line * lineH, function(index)
+        settings.muzzle_flash_type = index
+        setSetting("muzzle_flash_type", index)
     end)
 end
 
@@ -265,33 +420,60 @@ end
 -- ВКЛАДКА: SOUNDS
 -- ============================================
 function drawSoundsTab(settings, x, y)
-    drawToggle("Звуковой пак", settings.sound_pack_enabled, x, y, function(val)
+    local line = 0
+    local lineH = 35
+    
+    drawToggle("Звуковой пак", settings.sound_pack_enabled, x, y + line * lineH, function(val)
         settings.sound_pack_enabled = val
         setSetting("sound_pack_enabled", val)
         if val then loadSoundPack() else unloadSoundPack() end
     end)
+    line = line + 1
     
-    drawSlider("Deagle звук", settings.sound_deagle, 1, 3, x, y + 35, function(val)
-        settings.sound_deagle = val
-        setSetting("sound_deagle", val)
-        replaceWeaponSound("deagle", val)
+    local deagleSounds = {"Стандарт", "Чёткий", "Тяжёлый"}
+    drawCombo("Deagle", deagleSounds, settings.sound_deagle or 1, x, y + line * lineH, function(index)
+        settings.sound_deagle = index
+        setSetting("sound_deagle", index)
     end)
+    line = line + 1
     
-    drawSlider("AK-47 звук", settings.sound_ak47, 1, 3, x, y + 70, function(val)
-        settings.sound_ak47 = val
-        setSetting("sound_ak47", val)
-        replaceWeaponSound("ak47", val)
+    local akSounds = {"Стандарт", "Тактический", "Глушитель"}
+    drawCombo("AK-47", akSounds, settings.sound_ak47 or 1, x, y + line * lineH, function(index)
+        settings.sound_ak47 = index
+        setSetting("sound_ak47", index)
     end)
+    line = line + 1
     
-    drawSlider("Громкость", settings.weapon_volume, 0, 100, x, y + 105, function(val)
+    local m4Sounds = {"Стандарт", "Мягкий"}
+    drawCombo("M4", m4Sounds, settings.sound_m4 or 1, x, y + line * lineH, function(index)
+        settings.sound_m4 = index
+        setSetting("sound_m4", index)
+    end)
+    line = line + 1
+    
+    local pistolSounds = {"Стандарт", "Глушитель"}
+    drawCombo("Pistol", pistolSounds, settings.sound_pistol or 1, x, y + line * lineH, function(index)
+        settings.sound_pistol = index
+        setSetting("sound_pistol", index)
+    end)
+    line = line + 1
+    
+    drawSlider("Громкость", settings.weapon_volume or 80, 0, 100, x, y + line * lineH, function(val)
         settings.weapon_volume = val
         setSetting("weapon_volume", val)
-        setWeaponVolume(val)
     end)
+    line = line + 1
     
-    drawToggle("Звук попадания", settings.hitsound, x, y + 140, function(val)
+    drawToggle("Звук попадания", settings.hitsound, x, y + line * lineH, function(val)
         settings.hitsound = val
         setSetting("hitsound", val)
+    end)
+    line = line + 1
+    
+    local hitSounds = {"Стандарт", "CoD", "Rust"}
+    drawCombo("Тип hitsound", hitSounds, settings.hitsound_type or 1, x, y + line * lineH, function(index)
+        settings.hitsound_type = index
+        setSetting("hitsound_type", index)
     end)
 end
 
@@ -299,27 +481,31 @@ end
 -- КОМПОНЕНТ: TOGGLE
 -- ============================================
 function drawToggle(label, value, x, y, callback)
-    -- Фон переключателя
-    local toggleW = 30
-    local toggleH = 16
-    local toggleX = x + 250
+    local toggleW = 34
+    local toggleH = 18
+    local toggleX = x + 270
     
+    -- Фон
     if value then
-        DrawRect(toggleX + toggleW/2, y + toggleH/2, toggleW, toggleH, accentR, accentG, accentB, 255)
+        DrawRect(toggleX + toggleW/2, y + 8, toggleW, toggleH, accentR, accentG, accentB, 255)
     else
-        DrawRect(toggleX + toggleW/2, y + toggleH/2, toggleW, toggleH, 60, 60, 60, 200)
+        DrawRect(toggleX + toggleW/2, y + 8, toggleW, toggleH, 60, 60, 60, 220)
     end
+    
+    -- Кружок
+    local circleX = value and (toggleX + toggleW - 9) or (toggleX + 9)
+    DrawRect(circleX, y + 8, 14, 14, 255, 255, 255, 255)
     
     -- Текст
     SetTextFont(0)
-    SetTextScale(0.35, 0.35)
-    SetTextColour(255, 255, 255, 255)
+    SetTextScale(0.33, 0.33)
+    SetTextColour(220, 220, 220, 255)
     SetTextEntry("STRING")
     AddTextComponentString(label)
     DrawText(x, y)
     
-    -- Обработка клика (упрощённо)
-    if IsControlJustPressed(0, 24) then -- ЛКМ
+    -- Клик
+    if IsControlJustPressed(0, 24) then
         local mouseX, mouseY = GetCursorScreenPosition()
         if mouseX >= toggleX and mouseX <= toggleX + toggleW and
            mouseY >= y and mouseY <= y + toggleH then
@@ -334,22 +520,84 @@ end
 function drawSlider(label, value, min, max, x, y, callback)
     -- Текст
     SetTextFont(0)
-    SetTextScale(0.35, 0.35)
-    SetTextColour(255, 255, 255, 255)
+    SetTextScale(0.33, 0.33)
+    SetTextColour(220, 220, 220, 255)
     SetTextEntry("STRING")
-    AddTextComponentString(label .. ": " .. value)
-    DrawText(x, y)
+    AddTextComponentString(label)
+    DrawText(x, y - 2)
     
-    -- Полоска слайдера
-    local sliderW = 200
-    local sliderH = 6
-    local sliderX = x
-    local sliderY = y + 18
+    -- Значение
+    SetTextColour(accentR, accentG, accentB, 255)
+    SetTextEntry("STRING")
+    AddTextComponentString(tostring(value))
+    DrawText(x + 130, y - 2)
+    
+    -- Полоска
+    local sliderW = 180
+    local sliderH = 5
+    local sliderX = x + 160
+    local sliderY = y + 5
     local percent = (value - min) / (max - min)
     
-    DrawRect(sliderX + sliderW/2, sliderY, sliderW, sliderH, 60, 60, 60, 200)
+    -- Фон слайдера
+    DrawRect(sliderX + sliderW/2, sliderY, sliderW, sliderH, 50, 50, 50, 200)
+    -- Заполнение
     DrawRect(sliderX + (sliderW * percent)/2, sliderY, sliderW * percent, sliderH, accentR, accentG, accentB, 255)
-    DrawRect(sliderX + sliderW * percent, sliderY, 8, 14, 255, 255, 255, 255)
+    -- Ползунок
+    DrawRect(sliderX + sliderW * percent, sliderY, 8, 16, 255, 255, 255, 255)
+end
+
+-- ============================================
+-- КОМПОНЕНТ: COMBOBOX
+-- ============================================
+function drawCombo(label, options, selectedIndex, x, y, callback)
+    SetTextFont(0)
+    SetTextScale(0.33, 0.33)
+    SetTextColour(220, 220, 220, 255)
+    SetTextEntry("STRING")
+    AddTextComponentString(label)
+    DrawText(x, y)
+    
+    local selectedText = options[selectedIndex] or options[1]
+    
+    -- Стрелка влево
+    SetTextColour(150, 150, 150, 200)
+    SetTextEntry("STRING")
+    AddTextComponentString("◄")
+    DrawText(x + 170, y)
+    
+    -- Выбранное значение
+    SetTextColour(accentR, accentG, accentB, 255)
+    SetTextEntry("STRING")
+    AddTextComponentString(selectedText)
+    DrawText(x + 190, y)
+    
+    -- Стрелка вправо
+    SetTextColour(150, 150, 150, 200)
+    SetTextEntry("STRING")
+    AddTextComponentString("►")
+    DrawText(x + 290, y)
+    
+    -- Клик по стрелкам
+    if IsControlJustPressed(0, 24) then
+        local mouseX, mouseY = GetCursorScreenPosition()
+        
+        -- Стрелка влево
+        if mouseX >= x + 170 and mouseX <= x + 190 and
+           mouseY >= y and mouseY <= y + 20 then
+            local newIndex = selectedIndex - 1
+            if newIndex < 1 then newIndex = #options end
+            callback(newIndex)
+        end
+        
+        -- Стрелка вправо
+        if mouseX >= x + 290 and mouseX <= x + 310 and
+           mouseY >= y and mouseY <= y + 20 then
+            local newIndex = selectedIndex + 1
+            if newIndex > #options then newIndex = 1 end
+            callback(newIndex)
+        end
+    end
 end
 
 -- ============================================
@@ -365,5 +613,26 @@ function drawButton(label, x, y, w, h, r, g, b, a)
     AddTextComponentString(label)
     DrawText(x + 10, y + 5)
     
-    return false -- Заглушка
+    if IsControlJustPressed(0, 24) then
+        local mouseX, mouseY = GetCursorScreenPosition()
+        if mouseX >= x and mouseX <= x + w and
+           mouseY >= y and mouseY <= y + h then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- ============================================
+-- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+-- ============================================
+function getBoneIndex(bone)
+    local bones = {head = 1, neck = 2, chest = 3, pelvis = 4, legs = 5}
+    return bones[bone] or 1
+end
+
+function getPriorityIndex(priority)
+    local priorities = {distance = 1, health = 2, angle = 3}
+    return priorities[priority] or 1
 end
