@@ -4,7 +4,7 @@
 
 local menuOpen = false
 local currentTab = 1
-local tabs = {"⚡ FPS BOOST", "🎯 AIM", "👁 VISUALS", "🔊 SOUNDS"}
+local tabs = {"⚡ FPS BOOST", "🎯 AIM", "👁 VISUALS", "🔫 ОРУЖИЕ", "🔊 SOUNDS"}
 
 -- Цвета меню
 local accentR, accentG, accentB = 0, 198, 255
@@ -106,6 +106,8 @@ function drawMenu(settings)
     elseif currentTab == 3 then
         drawVisualsTab(settings, contentX, contentY)
     elseif currentTab == 4 then
+        drawWeaponTab(settings, contentX, contentY)
+    elseif currentTab == 5 then
         drawSoundsTab(settings, contentX, contentY)
     end
     
@@ -201,21 +203,18 @@ function drawAimTab(settings, x, y)
     local line = 0
     local lineH = 33
     
-    -- Включить умный прицел
     drawToggle("Умный прицел", settings.aim_enabled, x, y + line * lineH, function(val)
         settings.aim_enabled = val
         setSetting("aim_enabled", val)
     end)
     line = line + 1
     
-    -- Доводка до цели
     drawToggle("Доводка до цели", settings.aim_lock, x, y + line * lineH, function(val)
         settings.aim_lock = val
         setSetting("aim_lock", val)
     end)
     line = line + 1
     
-    -- Клавиша активации
     local keys = {"Всегда", "ЛКМ", "ПКМ", "LAlt", "E", "Shift"}
     local keyVals = {0, 1, 2, 18, 38, 21}
     local currentKeyIndex = 1
@@ -231,7 +230,6 @@ function drawAimTab(settings, x, y)
     end)
     line = line + 1
     
-    -- Точка прицеливания
     local boneNames = {"Голова", "Шея", "Грудь", "Таз", "Ноги"}
     local boneVals = {"head", "neck", "chest", "pelvis", "legs"}
     local boneIndex = getBoneIndex(settings.aim_bone or "head")
@@ -241,7 +239,6 @@ function drawAimTab(settings, x, y)
     end)
     line = line + 1
     
-    -- Приоритет целей
     local prioNames = {"Дистанция", "Здоровье", "Угол"}
     local prioVals = {"distance", "health", "angle"}
     local prioIndex = getPriorityIndex(settings.aim_priority or "distance")
@@ -251,98 +248,84 @@ function drawAimTab(settings, x, y)
     end)
     line = line + 1
     
-    -- Сила доводки
     drawSlider("Сила доводки", settings.aim_strength or 70, 0, 100, x, y + line * lineH, function(val)
         settings.aim_strength = val
         setSetting("aim_strength", val)
     end)
     line = line + 1
     
-    -- Плавность X
     drawSlider("Плавность X", settings.aim_smooth_x or 60, 0, 100, x, y + line * lineH, function(val)
         settings.aim_smooth_x = val
         setSetting("aim_smooth_x", val)
     end)
     line = line + 1
     
-    -- Плавность Y
     drawSlider("Плавность Y", settings.aim_smooth_y or 60, 0, 100, x, y + line * lineH, function(val)
         settings.aim_smooth_y = val
         setSetting("aim_smooth_y", val)
     end)
     line = line + 1
     
-    -- FOV
     drawSlider("FOV прицеливания", settings.aim_fov or 90, 10, 360, x, y + line * lineH, function(val)
         settings.aim_fov = val
         setSetting("aim_fov", val)
     end)
     line = line + 1
     
-    -- Deadzone
     drawSlider("Мёртвая зона", settings.aim_deadzone or 15, 0, 100, x, y + line * lineH, function(val)
         settings.aim_deadzone = val
         setSetting("aim_deadzone", val)
     end)
     line = line + 1
     
-    -- Макс дистанция
     drawSlider("Макс дистанция", settings.aim_max_distance or 200, 50, 500, x, y + line * lineH, function(val)
         settings.aim_max_distance = val
         setSetting("aim_max_distance", val)
     end)
     line = line + 1
     
-    -- Игнор мёртвых
     drawToggle("Игнор мёртвых", settings.aim_ignore_dead, x, y + line * lineH, function(val)
         settings.aim_ignore_dead = val
         setSetting("aim_ignore_dead", val)
     end)
     line = line + 1
     
-    -- Игнор в транспорте
     drawToggle("Игнор в транспорте", settings.aim_ignore_vehicles, x, y + line * lineH, function(val)
         settings.aim_ignore_vehicles = val
         setSetting("aim_ignore_vehicles", val)
     end)
     line = line + 1
     
-    -- Проверка видимости
     drawToggle("Проверка видимости", settings.aim_visible_check, x, y + line * lineH, function(val)
         settings.aim_visible_check = val
         setSetting("aim_visible_check", val)
     end)
     line = line + 1
     
-    -- Динамический размер прицела
     drawToggle("Динам. размер прицела", settings.aim_dynamic_size, x, y + line * lineH, function(val)
         settings.aim_dynamic_size = val
         setSetting("aim_dynamic_size", val)
     end)
     line = line + 1
     
-    -- No Recoil
     drawToggle("No Recoil", settings.no_recoil, x, y + line * lineH, function(val)
         settings.no_recoil = val
         setSetting("no_recoil", val)
     end)
     line = line + 1
     
-    -- No Spread
     drawToggle("No Spread", settings.no_spread, x, y + line * lineH, function(val)
         settings.no_spread = val
         setSetting("no_spread", val)
     end)
     line = line + 1
     
-    -- Разброс
     drawSlider("Разброс %", settings.spread_value or 0, 0, 100, x, y + line * lineH, function(val)
         settings.spread_value = val
         setSetting("spread_value", val)
     end)
     line = line + 1
     
-    -- Скорострельность
     local fireRate = math.floor((settings.fire_rate_multiplier or 1.0) * 100)
     drawSlider("Скорострельность %", fireRate, 50, 200, x, y + line * lineH, function(val)
         settings.fire_rate_multiplier = val / 100
@@ -417,6 +400,147 @@ function drawVisualsTab(settings, x, y)
 end
 
 -- ============================================
+-- ВКЛАДКА: ОРУЖИЕ (ОБВЕСЫ)
+-- ============================================
+function drawWeaponTab(settings, x, y)
+    local line = 0
+    local lineH = 33
+    
+    -- Выбор оружия
+    local weapons = getWeaponList()
+    local selectedWeapon = settings.selected_weapon or "WEAPON_DEAGLE"
+    
+    local weaponNames = {}
+    local weaponIndex = 1
+    for i, w in ipairs(weapons) do
+        weaponNames[i] = getWeaponDisplayName(w)
+        if w == selectedWeapon then weaponIndex = i end
+    end
+    
+    SetTextFont(0)
+    SetTextScale(0.33, 0.33)
+    SetTextColour(220, 220, 220, 255)
+    SetTextEntry("STRING")
+    AddTextComponentString("Оружие:")
+    DrawText(x, y)
+    
+    drawCombo("", weaponNames, weaponIndex, x + 60, y, function(index)
+        settings.selected_weapon = weapons[index]
+        setSetting("selected_weapon", weapons[index])
+        -- Сбросить обвесы при смене оружия
+        if not currentAttachments[weapons[index]] then
+            resetAttachments(weapons[index])
+        end
+        applyAllAttachments(weapons[index])
+    end)
+    line = line + 2
+    
+    -- Обвесы для выбранного оружия
+    local attachments = getAvailableAttachments(selectedWeapon)
+    
+    if #attachments == 0 then
+        SetTextFont(0)
+        SetTextScale(0.33, 0.33)
+        SetTextColour(150, 150, 150, 200)
+        SetTextEntry("STRING")
+        AddTextComponentString("Нет доступных обвесов")
+        DrawText(x, y + line * lineH)
+        return
+    end
+    
+    for _, att in ipairs(attachments) do
+        if att.type == "suppressor" then
+            local val = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].suppressor or false
+            drawToggle(att.name, val, x, y + line * lineH, function(newVal)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].suppressor = newVal
+                applySuppressor(selectedWeapon, newVal)
+            end)
+            
+        elseif att.type == "skin" then
+            local currentSkin = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].skin or 1
+            drawCombo(att.name, att.data.options, currentSkin, x, y + line * lineH, function(index)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].skin = index
+                applySkin(selectedWeapon, index)
+            end)
+            
+        elseif att.type == "scope" then
+            local currentScope = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].scope or 1
+            drawCombo(att.name, att.data.options, currentScope, x, y + line * lineH, function(index)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].scope = index
+                applyScope(selectedWeapon, index)
+            end)
+            
+        elseif att.type == "laser" then
+            local val = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].laser or false
+            drawToggle(att.name, val, x, y + line * lineH, function(newVal)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].laser = newVal
+                applyLaser(selectedWeapon, newVal)
+            end)
+            
+        elseif att.type == "flashlight" then
+            local val = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].flashlight or false
+            drawToggle(att.name, val, x, y + line * lineH, function(newVal)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].flashlight = newVal
+                applyFlashlight(selectedWeapon, newVal)
+            end)
+            
+        elseif att.type == "muzzle" then
+            local val = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].muzzle or false
+            drawToggle(att.name, val, x, y + line * lineH, function(newVal)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].muzzle = newVal
+                applyMuzzle(selectedWeapon, newVal)
+            end)
+            
+        elseif att.type == "grip" then
+            local val = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].grip or false
+            drawToggle(att.name, val, x, y + line * lineH, function(newVal)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].grip = newVal
+                applyGrip(selectedWeapon, newVal)
+            end)
+            
+        elseif att.type == "magazine" then
+            local val = currentAttachments[selectedWeapon] and currentAttachments[selectedWeapon].magazine or false
+            drawToggle(att.name, val, x, y + line * lineH, function(newVal)
+                if not currentAttachments[selectedWeapon] then
+                    resetAttachments(selectedWeapon)
+                end
+                currentAttachments[selectedWeapon].magazine = newVal
+                applyMagazine(selectedWeapon, newVal)
+            end)
+        end
+        
+        line = line + 1
+    end
+    
+    -- Кнопка сброса обвесов
+    line = line + 1
+    if drawButton("🔄 Сбросить обвесы", x, y + line * lineH, 150, 22, 200, 50, 50, 200) then
+        resetAttachments(selectedWeapon)
+    end
+end
+
+-- ============================================
 -- ВКЛАДКА: SOUNDS
 -- ============================================
 function drawSoundsTab(settings, x, y)
@@ -485,18 +609,15 @@ function drawToggle(label, value, x, y, callback)
     local toggleH = 18
     local toggleX = x + 270
     
-    -- Фон
     if value then
         DrawRect(toggleX + toggleW/2, y + 8, toggleW, toggleH, accentR, accentG, accentB, 255)
     else
         DrawRect(toggleX + toggleW/2, y + 8, toggleW, toggleH, 60, 60, 60, 220)
     end
     
-    -- Кружок
     local circleX = value and (toggleX + toggleW - 9) or (toggleX + 9)
     DrawRect(circleX, y + 8, 14, 14, 255, 255, 255, 255)
     
-    -- Текст
     SetTextFont(0)
     SetTextScale(0.33, 0.33)
     SetTextColour(220, 220, 220, 255)
@@ -504,7 +625,6 @@ function drawToggle(label, value, x, y, callback)
     AddTextComponentString(label)
     DrawText(x, y)
     
-    -- Клик
     if IsControlJustPressed(0, 24) then
         local mouseX, mouseY = GetCursorScreenPosition()
         if mouseX >= toggleX and mouseX <= toggleX + toggleW and
@@ -518,7 +638,6 @@ end
 -- КОМПОНЕНТ: SLIDER
 -- ============================================
 function drawSlider(label, value, min, max, x, y, callback)
-    -- Текст
     SetTextFont(0)
     SetTextScale(0.33, 0.33)
     SetTextColour(220, 220, 220, 255)
@@ -526,24 +645,19 @@ function drawSlider(label, value, min, max, x, y, callback)
     AddTextComponentString(label)
     DrawText(x, y - 2)
     
-    -- Значение
     SetTextColour(accentR, accentG, accentB, 255)
     SetTextEntry("STRING")
     AddTextComponentString(tostring(value))
     DrawText(x + 130, y - 2)
     
-    -- Полоска
     local sliderW = 180
     local sliderH = 5
     local sliderX = x + 160
     local sliderY = y + 5
     local percent = (value - min) / (max - min)
     
-    -- Фон слайдера
     DrawRect(sliderX + sliderW/2, sliderY, sliderW, sliderH, 50, 50, 50, 200)
-    -- Заполнение
     DrawRect(sliderX + (sliderW * percent)/2, sliderY, sliderW * percent, sliderH, accentR, accentG, accentB, 255)
-    -- Ползунок
     DrawRect(sliderX + sliderW * percent, sliderY, 8, 16, 255, 255, 255, 255)
 end
 
@@ -551,47 +665,44 @@ end
 -- КОМПОНЕНТ: COMBOBOX
 -- ============================================
 function drawCombo(label, options, selectedIndex, x, y, callback)
-    SetTextFont(0)
-    SetTextScale(0.33, 0.33)
-    SetTextColour(220, 220, 220, 255)
-    SetTextEntry("STRING")
-    AddTextComponentString(label)
-    DrawText(x, y)
+    if label ~= "" then
+        SetTextFont(0)
+        SetTextScale(0.33, 0.33)
+        SetTextColour(220, 220, 220, 255)
+        SetTextEntry("STRING")
+        AddTextComponentString(label)
+        DrawText(x, y)
+    end
     
     local selectedText = options[selectedIndex] or options[1]
+    local offsetX = label ~= "" and 170 or 110
     
-    -- Стрелка влево
     SetTextColour(150, 150, 150, 200)
     SetTextEntry("STRING")
     AddTextComponentString("◄")
-    DrawText(x + 170, y)
+    DrawText(x + offsetX, y)
     
-    -- Выбранное значение
     SetTextColour(accentR, accentG, accentB, 255)
     SetTextEntry("STRING")
     AddTextComponentString(selectedText)
-    DrawText(x + 190, y)
+    DrawText(x + offsetX + 20, y)
     
-    -- Стрелка вправо
     SetTextColour(150, 150, 150, 200)
     SetTextEntry("STRING")
     AddTextComponentString("►")
-    DrawText(x + 290, y)
+    DrawText(x + offsetX + 120, y)
     
-    -- Клик по стрелкам
     if IsControlJustPressed(0, 24) then
         local mouseX, mouseY = GetCursorScreenPosition()
         
-        -- Стрелка влево
-        if mouseX >= x + 170 and mouseX <= x + 190 and
+        if mouseX >= x + offsetX and mouseX <= x + offsetX + 20 and
            mouseY >= y and mouseY <= y + 20 then
             local newIndex = selectedIndex - 1
             if newIndex < 1 then newIndex = #options end
             callback(newIndex)
         end
         
-        -- Стрелка вправо
-        if mouseX >= x + 290 and mouseX <= x + 310 and
+        if mouseX >= x + offsetX + 120 and mouseX <= x + offsetX + 140 and
            mouseY >= y and mouseY <= y + 20 then
             local newIndex = selectedIndex + 1
             if newIndex > #options then newIndex = 1 end
