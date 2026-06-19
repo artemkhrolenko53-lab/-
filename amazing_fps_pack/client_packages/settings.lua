@@ -2,9 +2,6 @@
 -- AMAZING RP FPS PACK - НАСТРОЙКИ
 -- ============================================
 
-local SETTINGS_FILE = "amazing_fps_pack.json"
-
--- Дефолтные настройки
 local DEFAULTS = {
     -- FPS BOOST
     disable_shadows = true,
@@ -15,29 +12,39 @@ local DEFAULTS = {
     disable_lensflare = true,
     disable_particles = false,
     disable_ao = true,
-    lod_distance = 30,           -- 0-100%
+    lod_distance = 30,
     auto_clear_memory = true,
-    auto_clear_interval = 5,     -- минуты
+    auto_clear_interval = 5,
 
     -- AIM
     aim_enabled = true,
     aim_lock = true,
-    aim_strength = 70,           -- 0-100%
-    aim_smooth = 60,             -- 0-100%
-    aim_fov = 90,                -- угол
+    aim_strength = 70,
+    aim_smooth = 60,
+    aim_fov = 90,
     aim_color_enemy = {255, 0, 0, 255},
     aim_color_default = {0, 255, 0, 255},
     no_recoil = true,
     no_spread = true,
-    spread_value = 0,            -- 0-100%
-    fire_rate_multiplier = 1.0,  -- 0.5 - 2.0
+    spread_value = 0,
+    fire_rate_multiplier = 1.0,
     aim_dynamic_size = true,
+    aim_bone = "head",
+    aim_priority = "distance",
+    aim_ignore_vehicles = false,
+    aim_ignore_dead = true,
+    aim_smooth_x = 60,
+    aim_smooth_y = 60,
+    aim_deadzone = 15,
+    aim_activation_key = 0,
+    aim_visible_check = true,
+    aim_max_distance = 200,
 
     -- VISUALS
     black_roads = true,
-    road_darkness = 80,          -- 0-100%
+    road_darkness = 80,
     custom_crosshair = true,
-    crosshair_style = 1,         -- 1-5
+    crosshair_style = 1,
     crosshair_size = 15,
     crosshair_alpha = 200,
     crosshair_color = {0, 255, 0, 255},
@@ -46,33 +53,29 @@ local DEFAULTS = {
     custom_money_font = true,
     custom_chat_font = true,
     muzzle_flash = true,
-    muzzle_flash_type = 1,       -- 1-4
+    muzzle_flash_type = 1,
     blood_effects = true,
-    blood_size = 50,             -- 0-100%
+    blood_size = 50,
 
     -- SOUNDS
     sound_pack_enabled = true,
-    sound_deagle = 1,            -- 1-3
-    sound_ak47 = 1,              -- 1-3
-    sound_m4 = 1,                -- 1-2
-    sound_pistol = 1,            -- 1-2
+    sound_deagle = 1,
+    sound_ak47 = 1,
+    sound_m4 = 1,
+    sound_pistol = 1,
     sound_sniper = 1,
     sound_shotgun = 1,
-    weapon_volume = 80,          -- 0-100%
+    weapon_volume = 80,
     hitsound = true,
-    hitsound_type = 1,           -- 1-3
+    hitsound_type = 1,
 
     -- MONITOR
     show_fps = true,
-    fps_position = 1             -- 1-4
+    fps_position = 1
 }
 
--- Таблица с текущими настройками
 local currentSettings = {}
 
--- ============================================
--- ГЛУБОКОЕ КОПИРОВАНИЕ ТАБЛИЦЫ
--- ============================================
 local function deepCopy(orig)
     local copy = {}
     for k, v in pairs(orig) do
@@ -85,38 +88,18 @@ local function deepCopy(orig)
     return copy
 end
 
--- ============================================
--- ЗАГРУЗКА НАСТРОЕК
--- ============================================
 function loadSettings()
     currentSettings = deepCopy(DEFAULTS)
-    
-    -- В RAGE:MP Lua нет прямого доступа к mp.storage как в JS
-    -- Используем файловую систему или оставляем сброс при каждом запуске
-    -- Позже добавим сохранение через server-side
-    
     return currentSettings
 end
 
--- ============================================
--- СОХРАНЕНИЕ НАСТРОЕК
--- ============================================
 function saveSettings()
-    -- Будет реализовано через TriggerServerEvent
-    -- Пока заглушка
 end
 
--- ============================================
--- СБРОС НА ДЕФОЛТ
--- ============================================
 function resetSettings()
     currentSettings = deepCopy(DEFAULTS)
-    saveSettings()
 end
 
--- ============================================
--- ПОЛУЧИТЬ / ИЗМЕНИТЬ НАСТРОЙКУ
--- ============================================
 function getSetting(key)
     return currentSettings[key]
 end
